@@ -12,4 +12,4 @@ Smart Logger is a Python logging enhancement that provides a simple way to log m
 You can install Smart Logger using pip:
 
 ```bash
-pip install smart-logger
+>pip install -e git+https://github.com/saurabhkrdubey/smart-logger.git#egg=smart-logger

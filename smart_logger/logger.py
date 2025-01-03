@@ -1,4 +1,8 @@
 import logging
+import inspect
+import os
+
+
 
 class SmartLogger:
     def __init__(self, name='smart-logger'):
@@ -10,35 +14,51 @@ class SmartLogger:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
 
-        # Create and set a formatter
+        # Create and set a standard formatter that includes the filename and function name
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s'
+            '%(asctime)s - %(name)s - %(levelname)s - %(file_name)s:%(line_nos)s - %(func_name)s - %(message)s]'
         )
         ch.setFormatter(formatter)
 
         # Add the handler to the logger
         self.logger.addHandler(ch)
 
-    def info(self, message):
+
+    def log(self, level, message, extra=None):
+        """Log a message at a given level with optional extra information."""
+        if not extra:
+            extra = {}
+        # extra.setdefault('filename', 'custom.py')
+  
+        self.logger.log(level, message, extra=extra)
+
+    def info(self, message, extra=None):
         """Log an info message."""
-        self.logger.info(message)
+        self.log(logging.INFO, message, extra)
 
-    def warning(self, message):
+    def warning(self, message, extra=None):
         """Log a warning message."""
-        self.logger.warning(message)
+        self.log(logging.WARNING, message, extra)
 
-    def error(self, message):
+    def error(self, message, extra=None):
         """Log an error message."""
-        self.logger.error(message)
+        self.log(logging.ERROR, message, extra)
 
-    def debug(self, message):
+    def debug(self, message, extra=None):
         """Log a debug message."""
-        self.logger.debug(message)
+        self.log(logging.DEBUG, message, extra)
 
-# Example usage
-if __name__ == "__main__":
-    logger = SmartLogger().logger
-    # logger.info("This is an info message.")
-    # logger.warning("This is a warning message.")
-    # logger.error("This is an error message.")
-    # logger.debug("This is a debug message.")
+
+
+def get_context():
+    frame = inspect.currentframe().f_back
+    frame_info = inspect.getframeinfo(frame)
+    filename = os.path.basename(frame_info.filename)
+    line_number = frame_info.lineno
+    function_name = frame_info.function
+    context = {
+        "file_name": filename, 
+        "line_nos": line_number, 
+        "func_name": function_name
+    }
+    return context
