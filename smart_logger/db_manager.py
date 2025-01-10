@@ -49,7 +49,7 @@ class DBManager:
             cursor = self.get_cursor()
             cursor.execute(query)
             data = cursor.fetchone()
-            return dict(data)
+            return dict(data) if data else {}
         except Exception as e:
             raise e
         finally:
