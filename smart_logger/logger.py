@@ -100,7 +100,7 @@ class SmartLogger:
         asctime = datetime.fromtimestamp(datetime.timestamp(datetime.now())).strftime('%Y-%m-%d %H:%M:%S')
 
 
-        log_message = f"{self.env.upper()} - {asctime} - {self.service_name} - {log_type} - [{extra.get('file_name')}:{extra.get('line_nos')} - {extra.get('func_name')} - message]"
+        log_message = f"{self.env.upper()} - {asctime} - {self.service_name} - {log_type} - [{extra.get('file_name')}:{extra.get('line_nos')} - {extra.get('func_name')} - {message}]"
 
 
         self.insert_log(**{
