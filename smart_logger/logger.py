@@ -1,19 +1,10 @@
 import logging
 import inspect
 import os
+from datetime import datetime
 
 from .db_manager import DBManager
 
-
-
-import logging
-import os
-
-class CustomFormatter(logging.Formatter):
-    def format(self, record):
-        # Adding a custom variable if needed
-        record.custom_variable = "Custom Value"
-        return super().format(record)
 
 
 class SmartLogger:
@@ -46,7 +37,7 @@ class SmartLogger:
 
         # Create and set a standard formatter that includes the filename and function name
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(file_name)s:%(line_nos)s - %(func_name)s - %(message)s]'
+            '%(asctime)s - %(name)s - %(levelname)s - [%(file_name)s:%(line_nos)s - %(func_name)s - %(message)s]'
         )
         ch.setFormatter(formatter)
 
@@ -54,10 +45,13 @@ class SmartLogger:
 
         file_handler.setFormatter(formatter)
         ch.setFormatter(formatter)
+        
 
         # Add the handlers to the logger
         self.logger.addHandler(file_handler)
         self.logger.addHandler(ch)
+
+
 
     def fetch_create_project(self):
         """
@@ -74,6 +68,7 @@ class SmartLogger:
             """
             record = self.execute_query.insert(insert_query)
         return record['id']
+    
     
     def insert_log(self, **kwargs):
         """
@@ -102,11 +97,16 @@ class SmartLogger:
         project_id = self.fetch_create_project()
   
         self.logger.log(level, message, extra=extra)
+        asctime = datetime.fromtimestamp(datetime.timestamp(datetime.now())).strftime('%Y-%m-%d %H:%M:%S')
+
+
+        log_message = f"{self.env.upper()} - {asctime} - {self.service_name} - {log_type} - [{extra.get('file_name')}:{extra.get('line_nos')} - {extra.get('func_name')} - message]"
+
 
         self.insert_log(**{
             "project_id": project_id, 
             "log_type"  : log_type, 
-            "log"       : message
+            "log"       : log_message
         })
 
     def info(self, message, extra=None):
