@@ -71,8 +71,10 @@ class SmartLogger:
             "log_type"      : log_type, 
             "log"           : log_message,
             "service_name"  : self.service_name,
-            "env"           : self.env
+            "env"           : self.env,
+            "created_at"    : datetime.now().strftime("%Y-%m-%d %H:%M:%S")        
         }
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         resp = requests.post(KAFKA_URL, json=payload)
         print(f"kafka called: {resp.status_code}")
 
