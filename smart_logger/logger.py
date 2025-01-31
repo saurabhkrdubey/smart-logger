@@ -2,8 +2,11 @@ import logging
 import inspect
 import os
 from datetime import datetime
+import requests
+import json
 
 from .db_manager import DBManager
+from .constant import KAFKA_URL
 
 
 
@@ -49,52 +52,13 @@ class SmartLogger:
 
         # Add the handlers to the logger
         self.logger.addHandler(file_handler)
-        self.logger.addHandler(ch)
-
-
-
-    def fetch_create_project(self):
-        """
-        fetching project does exist or not.
-        Description - 
-            not exists - create new project and return project id
-            exists - return project id
-        """
-        query = f"""select id, name from core_project where name = '{self.project_name}'"""
-        record = self.execute_query.fetchone(query)
-        if not record:
-            insert_query = f"""
-                insert into core_project (name, created_at, updated_at) values ('{self.project_name}', now(), now()) RETURNING id
-            """
-            record = self.execute_query.insert(insert_query)
-        return record['id']
-    
-    
-    def insert_log(self, **kwargs):
-        """
-        inserting log into logger tables
-        """
-        insert_query = f"""
-            INSERT INTO public.core_logger(
-                created_at, updated_at, environment, logger_type, service_name, log, project_id
-            )
-            VALUES (
-                now(), now(), '{self.env.upper()}', 
-                '{kwargs['log_type']}', '{self.service_name}',
-                '{kwargs['log']}',
-                {kwargs['project_id']}
-            ) returning id;
-        """
-        self.execute_query.insert(insert_query)
-        
+        self.logger.addHandler(ch)    
 
 
     def log(self, level, message, extra=None, log_type='INFO'):
         """Log a message at a given level with optional extra information."""
         if not extra:
             extra = {}
-        
-        project_id = self.fetch_create_project()
   
         self.logger.log(level, message, extra=extra)
         asctime = datetime.fromtimestamp(datetime.timestamp(datetime.now())).strftime('%Y-%m-%d %H:%M:%S')
@@ -102,12 +66,15 @@ class SmartLogger:
 
         log_message = f"{self.env.upper()} - {asctime} - {self.service_name} - {log_type} - [{extra.get('file_name')}:{extra.get('line_nos')} - {extra.get('func_name')} - {message}]"
 
-
-        self.insert_log(**{
-            "project_id": project_id, 
-            "log_type"  : log_type, 
-            "log"       : log_message
-        })
+        payload = {
+            "project_name"  : self.project_name, 
+            "log_type"      : log_type, 
+            "log"           : log_message,
+            "service_name"  : self.service_name,
+            "env"           : self.env
+        }
+        resp = requests.post(KAFKA_URL, json=payload)
+        print(f"kafka called: {resp.status_code}")
 
     def info(self, message, extra=None):
         """Log an info message."""
